@@ -1,7 +1,10 @@
 import type { Handle } from '@sveltejs/kit';
 import { CookieOptions } from '../../nextjs/types';
+import {
+  SvelteKitRequestAdapter,
+  SvelteKitResponseAdapter
+} from '../../shared/adapters/SvelteKitAdapter';
 import { setCookies } from '../../shared/utils/cookies';
-import { toExpressRequest, toExpressResponse } from '../utils/expressify';
 
 export const handleCallback = (cookieOptions: CookieOptions) => {
   const handle: Handle = async ({ event, resolve }) => {
@@ -21,8 +24,8 @@ export const handleCallback = (cookieOptions: CookieOptions) => {
     if (bodyEvent === 'SIGNED_IN') {
       if (!session) throw new Error('Auth session missing!');
       setCookies(
-        toExpressRequest(req),
-        toExpressResponse(res),
+        new SvelteKitRequestAdapter(req),
+        new SvelteKitResponseAdapter(res),
         [
           { key: 'access-token', value: session.access_token },
           { key: 'refresh-token', value: session.refresh_token }
@@ -39,8 +42,8 @@ export const handleCallback = (cookieOptions: CookieOptions) => {
 
     if (bodyEvent === 'SIGNED_OUT') {
       setCookies(
-        toExpressRequest(req),
-        toExpressResponse(res),
+        new SvelteKitRequestAdapter(req),
+        new SvelteKitResponseAdapter(res),
         ['access-token', 'refresh-token'].map((key) => ({
           name: `${cookieOptions.name}-${key}`,
           value: '',

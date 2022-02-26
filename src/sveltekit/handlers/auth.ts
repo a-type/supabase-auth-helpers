@@ -15,9 +15,9 @@ export default function handleAuth(
 
     switch (route) {
       case '/api/callback.json':
-        return handleCb({ event, resolve });
       case '/api/user.json':
-      //
+      default:
+        return handleCb({ event, resolve });
     }
   };
   return handle;
