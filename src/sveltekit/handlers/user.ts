@@ -3,7 +3,7 @@ import { ApiError, CookieOptions } from '../../nextjs/types';
 import { COOKIE_OPTIONS } from '../../nextjs/utils/constants';
 import { jwtDecoder } from '../../shared/utils/jwt';
 import { json } from '../utils/json';
-// import getUser from '../utils/getUser';
+import getUser from '../utils/getUser';
 
 export default async function handleUser(
   cookieOptions: CookieOptions = COOKIE_OPTIONS
@@ -18,8 +18,9 @@ export default async function handleUser(
       if (!req.headers.get('cookies')) {
         throw new Error('Not able to parse cookies!');
       }
-      const cookies = req.headers.get('cookies');
-      const access_token = cookies?[`${cookieOptions.name}-access-token`];
+      const access_token = req.headers.get(
+        `${cookieOptions.name}-access-token`
+      );
 
       if (!access_token) {
         throw new Error('No cookie found!');
@@ -32,9 +33,10 @@ export default async function handleUser(
       }
       const timeNow = Math.round(Date.now() / 1000);
       if (jwtUser.exp < timeNow) {
+        const res = await resolve(event);
         // JWT is expired, let's refresh from Gotrue
-        // const response = await getUser({ req, res }, cookieOptions);
-        // res.status(200).json(response);
+        const response = await getUser({ req, res }, cookieOptions);
+        return json(response);
       } else {
         // Transform JWT and add note that it ise cached from JWT.
         const user = {
@@ -55,7 +57,7 @@ export default async function handleUser(
             'This user payload is retrieved from the cached JWT and might be stale. If you need up to date user data, please call the `getUser` method in a server-side context!'
         };
         const mergedUser = { ...user, ...jwtUser };
-        return json({ user: mergedUser, accessToken: access_token })
+        return json({ user: mergedUser, accessToken: access_token });
       }
     } catch (e) {
       const error = e as ApiError;
@@ -65,7 +67,7 @@ export default async function handleUser(
           headers,
           status: 400
         }
-      )
+      );
     }
   };
   return handle;
