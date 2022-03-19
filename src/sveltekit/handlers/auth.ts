@@ -1,7 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { CookieOptions } from '../../nextjs/types';
 import { COOKIE_OPTIONS } from '../../nextjs/utils/constants';
-import { json } from '../utils/json';
 import { handleCallback } from './callback';
 import handleUser from './user';
 
@@ -14,14 +13,15 @@ export default function handleAuth(
     } = event;
 
     switch (route) {
-      case '/api/callback.json':
+      case '/api/auth/callback':
         const handleCb = await handleCallback(cookieOptions);
         return handleCb({ event, resolve });
-      case '/api/user.json':
+      case '/api/auth/user':
         const handleUsr = await handleUser(cookieOptions);
         return handleUsr({ event, resolve });
       default:
-        return json({}, { status: 404 });
+        const response = await resolve(event);
+        return response;
     }
   };
   return handle;

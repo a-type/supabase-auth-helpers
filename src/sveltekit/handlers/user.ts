@@ -1,7 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 import { ApiError, CookieOptions } from '../../nextjs/types';
 import { COOKIE_OPTIONS } from '../../nextjs/utils/constants';
-import { jwtDecoder } from '../../shared/utils/jwt';
+import { jwtDecoder, parseCookie } from '../../shared/utils';
 import { json } from '../utils/json';
 import getUser from '../utils/getUser';
 
@@ -15,12 +15,13 @@ export default async function handleUser(
     });
 
     try {
-      if (!req.headers.get('cookies')) {
-        throw new Error('Not able to parse cookies!');
+      if (!req.headers.has('cookie')) {
+        throw new Error('Not able to parse cookies');
       }
-      const access_token = req.headers.get(
-        `${cookieOptions.name}-access-token`
-      );
+
+      const cookies = parseCookie(req.headers.get('cookie'));
+
+      const access_token = cookies[`${cookieOptions.name}-access-token`];
 
       if (!access_token) {
         throw new Error('No cookie found!');

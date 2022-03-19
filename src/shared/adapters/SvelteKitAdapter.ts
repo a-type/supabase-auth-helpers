@@ -21,8 +21,14 @@ export class SvelteKitResponseAdapter implements ResponseAdapter {
     return this.res.headers.get(name);
   }
 
-  setHeader(name: string, value: string) {
-    this.res.headers.set(name, value);
+  setHeader(name: string, value: string | string[]) {
+    if (Array.isArray(value)) {
+      value.forEach((val: string) => {
+        this.res.headers.append(name, val);
+      });
+    } else {
+      this.res.headers.set(name, value);
+    }
     return this.res;
   }
 }
